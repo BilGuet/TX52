@@ -1,0 +1,16 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!/hassan_algorithms/
+!*.cpp
+!*.h
+!*.c
+!*.cu
+!*.cuh
+!*.sge
+
+!/sln/
+!/sln/TX52/
+!/sln/TX52/*
