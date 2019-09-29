@@ -1,5 +1,5 @@
 
-//#include "radixsort.cuh"
+#include "radixsort.cuh"
 #include "radixsort_kernel.cu"
 
 extern "C"

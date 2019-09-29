@@ -3,8 +3,6 @@
 #ifndef _SCAN_BEST_KERNEL_CU_
 #define _SCAN_BEST_KERNEL_CU_
 
-#define LOG_NUM_BANKS 4
-
 #ifdef ZERO_BANK_CONFLICTS
 #define CONFLICT_FREE_OFFSET(index) ((index) >> LOG_NUM_BANKS + (index) >> (2*LOG_NUM_BANKS))
 #else
