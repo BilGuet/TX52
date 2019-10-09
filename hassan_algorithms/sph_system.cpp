@@ -178,7 +178,8 @@ void sphSystem::displayParticles(int iteration)
 	char bufferT[255];
 	snprintf(bufferT, sizeof(char)*255,"data/dataT_%i.csv",iteration);
 	fileT= fopen(bufferT,"w");
-#elif _WIN32
+
+#elif WIN32 || WIN64
 	switch (iteration)
 	{
 	case 0:
@@ -187,6 +188,9 @@ void sphSystem::displayParticles(int iteration)
 	case 1:
 		fileT = fopen("data/dataT_1.csv", "w+");
 		break;
+    default:
+        fputs("error opening file\n", stderr);
+        abort();
 	}
 #endif
 
