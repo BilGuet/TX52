@@ -174,25 +174,9 @@ void sphSystem::displayParticles(int iteration)
 	cout<<" Number of particles = "<<NumPoints()<<endl;
 	FILE *fileT = NULL;
 
-#ifdef __linux__ 
 	char bufferT[255];
 	snprintf(bufferT, sizeof(char)*255,"data/dataT_%i.csv",iteration);
 	fileT= fopen(bufferT,"w");
-
-#elif WIN32 || WIN64
-	switch (iteration)
-	{
-	case 0:
-		fileT = fopen("data/dataT_0.csv", "w+");
-		break;
-	case 1:
-		fileT = fopen("data/dataT_1.csv", "w+");
-		break;
-    default:
-        fputs("error opening file\n", stderr);
-        abort();
-	}
-#endif
 
 	fprintf(fileT,"X, Y, Z, Lxx, Lxy, Lxz, Lyx, Lyy, Lyz, Lzx, Lzy, Lzz, W \n");
 	///////////////////////////////////////////////////////////////
