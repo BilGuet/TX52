@@ -11,6 +11,8 @@
 !*.cu
 !*.cuh
 !*.sge
+!*.vtk
+!*.csv
 
 !/sln/
 !/sln/TX52/
