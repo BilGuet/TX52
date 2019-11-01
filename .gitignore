@@ -13,7 +13,4 @@
 !*.sge
 !*.vtk
 !*.csv
-
-!/sln/
-!/sln/TX52/
-!/sln/TX52/*
+!Makefile
