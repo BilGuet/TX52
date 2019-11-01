@@ -3,7 +3,8 @@
 
 # But not these files...
 !.gitignore
-!/hassan_algorithms/
+!/src/
+!/data/
 !*.cpp
 !*.h
 !*.c
