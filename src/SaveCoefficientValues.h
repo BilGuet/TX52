@@ -9,7 +9,7 @@ void SaveCoefficientValues( const std::vector<Point>& points, const std::vector<
     FILE* fileT = NULL;
     char bufferT[255];
 
-    snprintf(bufferT, sizeof(char) * 255, "../data/data_%u_%u.csv", points.size(), k);
+    snprintf(bufferT, sizeof(char) * 255, "../data/data_P_%u_k_%u.csv", points.size(), k);
     fileT = fopen(bufferT, "w");
 
     fprintf(fileT, "X, Y, Z, W\n");

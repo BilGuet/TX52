@@ -55,8 +55,6 @@ int main(int argc, char* argv[])
     auto W = std::vector<double>(points.size(), 0);
 
     ComputeWUsingConvolutionMatrix(points, W);
-    //ComputeWUsingDistance(points, W);
-    //ComputeWUsingNumberNeighbor(points, W);
     
     std::cout << std::endl << "Saving the values in file..." << std::endl << std::endl;
     SaveCoefficientValues(points, W);
