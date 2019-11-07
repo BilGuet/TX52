@@ -4,14 +4,3 @@
 # But not these files...
 !.gitignore
 !/src/
-!/src/data/
-!/data/
-!*.cpp
-!*.h
-!*.c
-!*.cu
-!*.cuh
-!*.sge
-!*.vtk
-!*.csv
-!Makefile
