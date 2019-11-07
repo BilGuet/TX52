@@ -4,7 +4,7 @@
 #include "Point.h"
 #include "KNearestNeighbors.cuh"
 
-void ComputeWUsingDistance(const std::vector<Point>& points, std::vector<double>& W)
+void ComputeWUsingDistance(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
 {
     double Dmax = 0;
 
@@ -24,7 +24,7 @@ void ComputeWUsingDistance(const std::vector<Point>& points, std::vector<double>
     std::cout << std::endl;
 
     std::vector< std::vector<size_t> > neighbors;
-    GetKNearestNeighborsGPU(points, neighbors);
+    GetKNearestNeighborsGPU(points, neighbors, k);
 
     std::cout << std::endl << "Computing sigma..." << std::endl;
     for (unsigned int p = 0; p < points.size(); p++)

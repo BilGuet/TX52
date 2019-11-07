@@ -5,11 +5,11 @@
 #include "Point.h"
 #include "KNearestNeighbors.cuh"
 
-void ComputeWUsingNumberNeighbor(const std::vector<Point>& points, std::vector<double>& W)
+void ComputeWUsingNumberNeighbor(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
 {
     std::vector< std::vector<size_t> > AllNeighbors;
     
-    GetKNearestNeighborsGPU(points, AllNeighbors);
+    GetKNearestNeighborsGPU(points, AllNeighbors, k);
     
     std::cout << std::endl << "Computing W..." << std::endl;
     for (size_t p = 0; p < points.size(); ++p)

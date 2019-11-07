@@ -7,10 +7,10 @@
 #include "KNearestNeighbors.cuh"
 #include "SolveEigenvalues.h"
 
-void ComputeWUsingConvolutionMatrix(const std::vector<Point>& points, std::vector<double>& W)
+void ComputeWUsingConvolutionMatrix(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
 {
     std::vector< std::vector<size_t> > neighbors;
-    GetKNearestNeighborsGPU(points, neighbors);
+    GetKNearestNeighborsGPU(points, neighbors, k);
 
     for (size_t p = 0; p < points.size(); p++)
     {

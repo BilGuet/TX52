@@ -4,7 +4,7 @@
 
 #include "Point.h"
 
-void SaveCoefficientValues( const std::vector<Point>& points, const std::vector<double>& W)
+void SaveCoefficientValues( const std::vector<Point>& points, const std::vector<double>& W, unsigned int k)
 {
     FILE* fileT = NULL;
     char bufferT[255];

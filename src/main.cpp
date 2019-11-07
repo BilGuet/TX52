@@ -14,19 +14,28 @@ int main(int argc, char* argv[])
     //points coordinates
     std::vector<Point> points;
 
-    std::string s;
+    //number of neighbors (= 10 if not precised by user)
+    unsigned int k = 10;
+
+    /////////////////////////   FILE READING, DO NOT TOUCH //////////////////////
+
     if(argc == 1)
     {
-        std::cout << "No input file. Exiting" << std::endl;
+        std::cout << "No input file or k. Exiting" << std::endl;
         return 0;
+    }
+    else if(argc == 2)
+    {
+        std::cout << "k will be set at 10 by default" << std::endl;
     }
     else
     {
-        s = argv[1];
+        k = atoi(argv[2]);
     }
 
-    // check that the file exist
+    std::string s = argv[1];
     std::ifstream file (s.c_str());
+    // check that the file exist
     if(!file.good())
     {
         std::cout << "File does not exist. Exiting" << std::endl;
@@ -46,6 +55,8 @@ int main(int argc, char* argv[])
         std::cout << "File has to be VTK or CSV. Exiting." << std::endl;
         return 0;
     }
+    
+    /////////////////////////////////////////////////////////////////////////////
 
     std::cout << std::endl << "There is " << points.size() << " points." << std::endl;
     std::cout << "press ENTER to continue...";
@@ -54,10 +65,10 @@ int main(int argc, char* argv[])
     //final value
     auto W = std::vector<double>(points.size(), 0);
 
-    ComputeWUsingConvolutionMatrix(points, W);
+    ComputeWUsingConvolutionMatrix(points, W, k);
     
     std::cout << std::endl << "Saving the values in file..." << std::endl << std::endl;
-    SaveCoefficientValues(points, W);
+    SaveCoefficientValues(points, W, k);
 
     return 0;
 }
