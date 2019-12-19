@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Point.h"
+#include "ComputeNeighbors.cuh"
 
 __device__ double get_maximum(double* distance, int& index, int p, unsigned int k)
 {
