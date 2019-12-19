@@ -4,7 +4,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
 #include "Point.h"
 //#include "vtkUnstructuredGridReader.h"
 //#include "vtkUnstructuredGrid.h"

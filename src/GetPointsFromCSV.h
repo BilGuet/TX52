@@ -3,7 +3,6 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-
 #include "Point.h"
 
 void GetPointsFromCSV(std::ifstream& file, std::vector<Point>& p)

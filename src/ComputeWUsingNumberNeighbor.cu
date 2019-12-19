@@ -1,14 +1,13 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-
-#include "Point.h"
 #include "KNearestNeighbors.cuh"
 
 void ComputeWUsingNumberNeighbor(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
 {
     std::vector< std::vector<size_t> > AllNeighbors;
     
+    // compute the neighbors for all the particules
     GetKNearestNeighborsGPU(points, AllNeighbors, k);
     
     std::cout << std::endl << "Computing W..." << std::endl;
@@ -23,6 +22,7 @@ void ComputeWUsingNumberNeighbor(const std::vector<Point>& points, std::vector<d
             }
         }
 
+        // more neighbors have p in their neighborhood, the closest W is from 1
         W[p] /= k;
     }
 }

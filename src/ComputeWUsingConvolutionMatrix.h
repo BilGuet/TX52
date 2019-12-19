@@ -1,8 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <cmath>
-
 #include "Point.h"
 #include "KNearestNeighbors.cuh"
 #include "SolveEigenvalues.h"
@@ -10,10 +8,12 @@
 void ComputeWUsingConvolutionMatrix(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
 {
     std::vector< std::vector<size_t> > neighbors;
+    // compute the neighbors for all the points
     GetKNearestNeighborsGPU(points, neighbors, k);
 
     for (size_t p = 0; p < points.size(); p++)
     {
+        // means used in thee covariance matrix
         double Xmean = 0, Ymean = 0;
 
         for (size_t q = 0; q < k; q++)
