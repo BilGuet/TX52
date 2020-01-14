@@ -10,9 +10,12 @@ void ComputeWUsingNumberNeighbor(const std::vector<Point>& points, std::vector<d
     // compute the neighbors for all the particules
     GetKNearestNeighborsGPU(points, AllNeighbors, k);
     
+    W.clear();
+
     std::cout << std::endl << "Computing W..." << std::endl;
     for (size_t p = 0; p < points.size(); ++p)
     {
+        W.push_back(0);
         for (size_t q : AllNeighbors[p])
         {
             //check if p is in q neighbourhood

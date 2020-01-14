@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <utility>
 #include "Point.h"
+#include "Vector.h"
 
-void ComputeNormalVector(const std::vector<Point>& points, std::vector< std::vector<double> >& normals, const std::vector<double>& V);
+std::pair<double, double> ComputeNormalVector(const std::vector<Point>& points, std::vector<double>& eigenValues, std::vector<Vector>& normals);

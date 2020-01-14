@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <ctime>
 #include "Point.h"
 #include "GetPointsFromVTK.h"
 #include "GetPointsFromCSV.h"
@@ -8,7 +9,8 @@
 #include "ComputeWUsingNumberNeighbor.cuh"
 #include "ExtractVolume.h"
 #include "ComputeNormalVector.cuh"
-
+#include "FreeSurfaceAlgo.cuh"
+#include "SaveCoefficientValues.h"
 
 // command line : ./main file_name k
 
@@ -58,20 +60,21 @@ int main(int argc, char* argv[])
                 getchar();
     /////////////////////////   FILE READING, DO NOT TOUCH //////////////////////
 
-    std::vector<double> V;
-    ExtractVolume(file, V, points);
-
-    std::vector<std::vector<double> > normals;
-    ComputeNormalVector(points, normals, V);
-
-
-    /*
-    auto W = std::vector<double>(points.size(), 0);
-
-    ComputeWUsingConvolutionMatrix(points, W, k);
     
-    SaveCoefficientValues(points, W, k);
-    */
+    ExtractVolume(file, points);
+
+    clock_t begin = clock();
+
+    std::vector<double> W;
+    std::vector<int> flags;
+    std::vector<double> eigenValues;
+    std::vector<Vector> normals;
+    FreeSurfaceAlgo(points, eigenValues, normals, flags);
+    SaveCoefficientValues(points, flags);
+
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << elapsed_secs << std::endl;
 
     return 0;
 }

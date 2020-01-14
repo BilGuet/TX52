@@ -83,7 +83,7 @@ void getDensity(std::ifstream& file, std::vector<double>& density, const size_t 
     }
 }
 
-void ExtractVolume(std::ifstream& file, std::vector<double>& V, const std::vector<Point>& points)
+void ExtractVolume(std::ifstream& file, std::vector<Point>& points)
 {
     std::cout << "Computing volumes..." << std::endl;
 
@@ -96,12 +96,11 @@ void ExtractVolume(std::ifstream& file, std::vector<double>& V, const std::vecto
     file.seekg(0);
     getDensity(file, density, points.size());
 
-    V.clear();
-
     for (size_t i = 0; i < points.size(); i++)
     {
         //double etha = 2.0 * M_PI * points[i].x * density[i];
         //V.push_back(mass[i] / etha);
-        V.push_back(pow(0.0005, 2)* 1060.0 / density[i]);
+        //V.push_back(pow(0.0005, 2)* 1060.0 / density[i]);
+        points[i].v = (pow(0.0005, 2)* 1060.0 / density[i]);
     }
 }

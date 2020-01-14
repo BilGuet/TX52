@@ -25,7 +25,7 @@ void __device__ kernel(const double h, const double r, double xij, double yij, d
     }
 }
 
-void __global__ ComputeRenormalizedMatrix(const Point* points, const double* V, double* L, const size_t n, const double h)
+void __global__ ComputeRenormalizedMatrix(const Point* points, double* L, const size_t n)
 {
     // thread computes only particules associates with him
     size_t id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -48,16 +48,16 @@ void __global__ ComputeRenormalizedMatrix(const Point* points, const double* V, 
                 double r = sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2));
 
                 // check that q is in support of p for Gaussian kernel
-                if (r <= 2*h)
+                if (r <= 2* points[i].h)
                 {
                     double dWdx = 0;
                     double dWdy = 0;
-                    double Vj = V[j];
+                    double Vj = points[j].v;
                     double xij = p.x - q.x;
                     double yij = p.y - q.y;
 
                     // compute dWdx and dWdy
-                    kernel(h, r, xij, yij, dWdx, dWdy);
+                    kernel(points[i].h, r, xij, yij, dWdx, dWdy);
 
                     L[4 * i] += (q.x - p.x) * dWdx * Vj;        // L[0][0]
                     L[4 * i + 1] += (q.x - p.x) * dWdy * Vj;    // L[0][1]
@@ -69,12 +69,10 @@ void __global__ ComputeRenormalizedMatrix(const Point* points, const double* V, 
     }
 }
 
-
-void GetEigenValues(const std::vector<Point>& points, const std::vector<double>& V, const double h,
-    std::vector<double>& eigenValues, std::vector< std::vector<double> >& matrix)
+void GetEigenValues(const std::vector<Point>& points, std::vector<double>& eigenValues,
+    std::vector< std::vector<double> >& matrix)
 {
     std::cout << "Computing Eigenvalues..." << std::endl;
-    eigenValues.resize(points.size());
 
     Point* CPUpoints = (Point*)malloc(points.size() * sizeof(Point));
     double* CPUvolumes = (double*)malloc(points.size() * sizeof(double));
@@ -84,50 +82,47 @@ void GetEigenValues(const std::vector<Point>& points, const std::vector<double>&
     for (int i = 0; i < points.size(); i++)
     {
         CPUpoints[i] = points[i];
-        CPUvolumes[i] = V[i];
+        CPUvolumes[i] = points[i].v;
     }
 
 
     //GPU variables
     Point* GPUpoints;
-    double* GPUvolumes;
     double* GPUmatrix;
     assert(cudaMalloc((void**)&GPUpoints, points.size() * sizeof(Point)) == cudaSuccess);
-    assert(cudaMalloc((void**)&GPUvolumes, points.size() * sizeof(double)) == cudaSuccess);
     assert(cudaMalloc((void**)&GPUmatrix, points.size() * 4 * sizeof(double)) == cudaSuccess);
 
     assert(cudaMemcpy(GPUpoints, CPUpoints, points.size() * sizeof(Point), cudaMemcpyHostToDevice) == cudaSuccess);
-    assert(cudaMemcpy(GPUvolumes, CPUvolumes, points.size() * sizeof(double), cudaMemcpyHostToDevice) == cudaSuccess);
 
-    ComputeRenormalizedMatrix<<< (points.size() / 512) + 1, 512 >>>(GPUpoints, GPUvolumes, GPUmatrix, points.size(), h);
+    ComputeRenormalizedMatrix<<< (points.size() / 512) + 1, 512 >>>(GPUpoints, GPUmatrix, points.size());
     cudaDeviceSynchronize();
 
     assert(cudaMemcpy(CPUmatrix, GPUmatrix, points.size() * 4 * sizeof(double), cudaMemcpyDeviceToHost) == cudaSuccess);
 
-    matrix.resize(points.size());
+    matrix.clear();
+    eigenValues.clear();
     for (size_t i = 0; i < points.size(); i++)
     {
-        matrix[i].resize(4);
-        matrix[i][0] = CPUmatrix[4*i];      // M[0][0]
-        matrix[i][1] = CPUmatrix[4*i + 1];  // M[0][1]
-        matrix[i][2] = CPUmatrix[4*i + 2];  // M[1][0]
-        matrix[i][3] = CPUmatrix[4*i + 3];  // M[1][1]
+        matrix.push_back(std::vector<double>());
+        matrix[i].push_back(CPUmatrix[4*i]);
+        matrix[i].push_back(CPUmatrix[4*i + 1]);
+        matrix[i].push_back(CPUmatrix[4*i + 2]);
+        matrix[i].push_back(CPUmatrix[4*i + 3]);
 
         // compute eigenvalues of the matrix
-        std::vector<double> values = SolveEigenvalues(matrix[i][0], matrix[i][1], matrix[i][2], matrix[i][3]);
+        std::pair<double, double> values = SolveEigenvalues(matrix[i][0], matrix[i][1], matrix[i][2], matrix[i][3]);
+
+        double e1 = values.first;
+        double e2 = values.second;
 
         // save the minimum of the eigenvalues
-        double e1 = values[0];
-        double e2 = values[1];
-
-        // save the minimum of the eigenvalues
-        eigenValues[i] = e1 < e2 ? e1 : e2;
+        double e = e1 < e2 ? e1 : e2;
+        eigenValues.push_back(e);
     }
 
     free(CPUpoints);
     free(CPUvolumes);
     free(CPUmatrix);
     cudaFree(GPUpoints);
-    cudaFree(GPUvolumes);
     cudaFree(GPUmatrix);
 }

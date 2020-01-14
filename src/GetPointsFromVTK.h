@@ -43,7 +43,10 @@ void GetPointsFromVTK(std::ifstream&  file, std::vector<Point>& p)
         {
             parsedRow.push_back(cell);
         }
-        a = parsedRow[0];
+        if (parsedRow.size() > 0)
+        {
+            a = parsedRow[0];
+        }
     }
     n = atof(parsedRow[1].c_str());
     

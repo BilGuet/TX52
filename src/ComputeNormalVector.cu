@@ -1,15 +1,13 @@
 #include <cuda_runtime.h>
+#include <vector>
 #include <iostream>
 #include <cassert>
+#include <utility>
 #include "ComputeNormalVector.cuh"
 #include "GetParticleSpacing.cuh"
 #include "GetEigenValues.cuh"
 
-#define SAVECOEFFICIENTS
-#include "SaveCoefficientValues.h"
-
-
-void __global__ ComputeVector(const Point const* points, const double const* V, const double const* eigenValues, const double const* matrix, double* vectors, const size_t n, const double h)
+void __global__ ComputeVector(const Point const* points, const double const* eigenValues, const double const* matrix, Vector* normals, const size_t n)
 {
     size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -24,8 +22,8 @@ void __global__ ComputeVector(const Point const* points, const double const* V, 
         double L11 = matrix[4 * i + 3];
 
         // initialize normal vector
-        vectors[2*i] = 0;
-        vectors[2*i + 1] = 0;
+        normals[i].x = 0;
+        normals[i].y = 0;
 
         for (size_t j = 0; j < n; j++)
         {
@@ -36,106 +34,96 @@ void __global__ ComputeVector(const Point const* points, const double const* V, 
 
             // check that q is in support of p for Gaussian kernel
             // and we're not on p
-            if (r <= 2 * h && i != j)
+            if (r <= 2 * points[i].h && i != j)
             {
                 double dWdx = 0;
                 double dWdy = 0;
-                double Vj = V[j];
+                double Vj = points[j].v;
                 double xij = p.x - q.x;
                 double yij = p.y - q.y;
 
                 // compute dWdx and dWdy
-                kernel(h, r, xij, yij, dWdx, dWdy);
+                kernel(points[i].h, r, xij, yij, dWdx, dWdy);
 
                 // see vector formula
-                vectors[2*i] += (eigenValues[j] - eigenValues[i]) * (L00*dWdx + L01*dWdy) * Vj;
-                vectors[2*i + 1] += (eigenValues[j] - eigenValues[i]) * (L10*dWdx + L11*dWdy) * Vj;
+                normals[i].x += (eigenValues[j] - eigenValues[i]) * (L00*dWdx + L01*dWdy) * Vj;
+                normals[i].y += (eigenValues[j] - eigenValues[i]) * (L10*dWdx + L11*dWdy) * Vj;
             }
         }
-        vectors[2*i] *= -1;
-        vectors[2*i + 1] *= -1;
+        normals[i].x *= -1;
+        normals[i].y *= -1;
 
-        double norm = sqrt(pow(vectors[2*i], 2) + pow(vectors[2*i + 1], 2));
+        double norm = sqrt(pow(normals[i].x, 2) + pow(normals[i].y, 2));
 
         // n = v / ||v||
-        vectors[2*i] /= norm;
-        vectors[2*i + 1] /= norm;
+        normals[i].x /= norm;
+        normals[i].y /= norm;
     }
 }
 
-void ComputeNormalVector(const std::vector<Point>& points, std::vector< std::vector<double> >& normals, const std::vector<double>& V)
+std::pair<double, double> ComputeNormalVector(const std::vector<Point>& points, std::vector<double>& eigenValues, std::vector<Vector>& normals)
 {
-    double dx = GetParticleSpacing(points);
+    //double dx = GetParticleSpacing(points);
+    //double dx = 0.2e-3;
 
-    // use for kernel radius (dx ~ 0.00075)
-    //double h = 1.0 * dx;   
-    double h = 1.0 * 0.00075;   
+    double Wmax = 0;
+    double Wmin = 1000000000;
 
-    std::vector<double> eigenValues;
     std::vector< std::vector<double> > matrix;
-    GetEigenValues(points, V, h, eigenValues, matrix);
+    GetEigenValues(points, eigenValues, matrix);
 
-    SaveCoefficientValues(points, eigenValues, 0);
-
-    /*
     Point* CPUpoints = (Point*)malloc(points.size() * sizeof(Point));
-    double* CPUvolumes = (double*)malloc(points.size() * sizeof(double));
+    Vector* CPUvectors = (Vector*)malloc(points.size() * sizeof(Vector));
     double* CPUeigenValues = (double*)malloc(points.size() * 2 * sizeof(double));
-    double* CPUvectors = (double*)malloc(points.size() * 2 * sizeof(double));
     double* CPUmatrix = (double*)malloc(points.size() * 4 * sizeof(double));
 
     for (int i = 0; i < points.size(); i++)
     {
         CPUpoints[i] = points[i];
-        CPUvolumes[i] = V[i];
         CPUeigenValues[i] = eigenValues[i];
         CPUmatrix[4*i] = matrix[i][0];
         CPUmatrix[4*i + 1] = matrix[i][1];
         CPUmatrix[4*i + 2] = matrix[i][2];
         CPUmatrix[4*i + 3] = matrix[i][3];
+
+        Wmax = eigenValues[i] > Wmax ? eigenValues[i] : Wmax;
+        Wmin = eigenValues[i] < Wmin ? eigenValues[i] : Wmin;
     }
 
     //GPU variables
     Point* GPUpoints;
-    double* GPUvolumes;
+    Vector* GPUvectors;
     double* GPUeigenValues;
-    double* GPUvectors;
     double* GPUmatrix;
     assert(cudaMalloc((void**)&GPUpoints, points.size() * sizeof(Point)) == cudaSuccess);
-    assert(cudaMalloc((void**)&GPUvolumes, points.size() * sizeof(double)) == cudaSuccess);
+    assert(cudaMalloc((void**)&GPUvectors, points.size() * sizeof(Vector)) == cudaSuccess);
     assert(cudaMalloc((void**)&GPUeigenValues, points.size() * 2 * sizeof(double)) == cudaSuccess);
-    assert(cudaMalloc((void**)&GPUvectors, points.size() * 2 * sizeof(double)) == cudaSuccess);
     assert(cudaMalloc((void**)&GPUmatrix, points.size() * 4 * sizeof(double)) == cudaSuccess);
 
     assert(cudaMemcpy(GPUpoints, CPUpoints, points.size() * sizeof(Point), cudaMemcpyHostToDevice) == cudaSuccess);
-    assert(cudaMemcpy(GPUvolumes, CPUvolumes, points.size() * sizeof(double), cudaMemcpyHostToDevice) == cudaSuccess);
     assert(cudaMemcpy(GPUeigenValues, CPUeigenValues, points.size() * 2 * sizeof(double), cudaMemcpyHostToDevice) == cudaSuccess);
     assert(cudaMemcpy(GPUmatrix, CPUmatrix, points.size() * 4 * sizeof(double), cudaMemcpyHostToDevice) == cudaSuccess);
 
-    ComputeVector << < (points.size() / 512) + 1, 512 >> > (GPUpoints, GPUvolumes, GPUeigenValues, GPUmatrix, GPUvectors, points.size(), h);
+    ComputeVector << < (points.size() / 512) + 1, 512 >> > (GPUpoints, GPUeigenValues, GPUmatrix, GPUvectors, points.size());
     cudaDeviceSynchronize();
 
-    assert(cudaMemcpy(CPUvectors, GPUvectors, points.size() * 2 * sizeof(double), cudaMemcpyDeviceToHost) == cudaSuccess);
+    assert(cudaMemcpy(CPUvectors, GPUvectors, points.size() * sizeof(Vector), cudaMemcpyDeviceToHost) == cudaSuccess);
 
-    normals.resize(points.size());
+    normals.clear();
     for (size_t i = 0; i < points.size(); i++)
     {
-        normals[i].resize(2);
-        normals[i][0] = CPUvectors[2*i];
-        normals[i][1] = CPUvectors[2*i + 1];
+        normals.push_back({ CPUvectors[i].x , CPUvectors[i].y });
     }
 
     free(CPUpoints);
-    free(CPUvolumes);
     free(CPUeigenValues);
     free(CPUvectors);
     free(CPUmatrix);
     cudaFree(GPUpoints);
-    cudaFree(GPUvolumes);
     cudaFree(GPUeigenValues);
     cudaFree(GPUvectors);
     cudaFree(GPUmatrix);
-    */
+
+    return { Wmin, Wmax };
 }
 
-#undef SAVECOEFFICIENTS
