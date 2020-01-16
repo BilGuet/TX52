@@ -55,7 +55,7 @@ void __global__ ComputeVector(const Point const* points, const double const* eig
 
         double norm = sqrt(pow(normals[i].x, 2) + pow(normals[i].y, 2));
 
-        // n = v / ||v||
+        // normalize the normal
         normals[i].x /= norm;
         normals[i].y /= norm;
     }
@@ -63,9 +63,7 @@ void __global__ ComputeVector(const Point const* points, const double const* eig
 
 std::pair<double, double> ComputeNormalVector(const std::vector<Point>& points, std::vector<double>& eigenValues, std::vector<Vector>& normals)
 {
-    //double dx = GetParticleSpacing(points);
-    //double dx = 0.2e-3;
-
+    // uses for comparing particles eigenvalue to others
     double Wmax = 0;
     double Wmin = 1000000000;
 
@@ -86,6 +84,7 @@ std::pair<double, double> ComputeNormalVector(const std::vector<Point>& points, 
         CPUmatrix[4*i + 2] = matrix[i][2];
         CPUmatrix[4*i + 3] = matrix[i][3];
 
+        // check if eigenvalue isn't a global maximum/minimum
         Wmax = eigenValues[i] > Wmax ? eigenValues[i] : Wmax;
         Wmin = eigenValues[i] < Wmin ? eigenValues[i] : Wmin;
     }

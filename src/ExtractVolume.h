@@ -35,7 +35,7 @@ void getMasse(std::ifstream& file, std::vector<double>& mass, const size_t nbPoi
     }
 
     unsigned int i = 0;
-    //ignore first line
+    // ignore first line
     std::getline(file, line);
     while (i < nbPoints && std::getline(file, line))
     {
@@ -72,7 +72,7 @@ void getDensity(std::ifstream& file, std::vector<double>& density, const size_t 
     }
 
     unsigned int i = 0;
-    //ignore first line
+    // ignore first line
     std::getline(file, line);
     while (i < nbPoints && std::getline(file, line))
     {

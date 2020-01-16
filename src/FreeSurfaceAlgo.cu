@@ -24,6 +24,7 @@ void __global__ FindBoundaryParticles(Point* points, Vector* normals, double* ei
     {
         Point p = points[i];
 
+        // check if particle isn't inside the domain
         if (Wmin + 0.2 * (Wmax - Wmin) < eigenValues[i] && eigenValues[i] <= Wmin + 0.75 * (Wmax - Wmin))
         {
             // initialization to one, if find out that not a boundary particle
@@ -32,14 +33,20 @@ void __global__ FindBoundaryParticles(Point* points, Vector* normals, double* ei
 
             for (size_t j = 0; j < n; j++) {
                 Point q = points[j];
+                // distance between p and q
                 double r = sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2));
 
+                // check that q is in radius of p
                 if (r <= 2 * p.h && i != j) {
                     double normal_norm = sqrt(pow(normals[i].x, 2) + pow(normals[i].y, 2));
+
+                    // point T is at a distance of h from p in the direction of its normal
                     Point t { p.x + (normals[i].x/normal_norm)*p.h, p.y + (normals[i].y/normal_norm)*p.h };
                     
+                    // tau is orthogonal to the normal of p
                     Vector tau = { normals[i].y, -normals[i].x };
                     double tau_norm = sqrt(pow(tau.x, 2) + pow(tau.y, 2));
+                    // normalize tau to make it a unit vector
                     tau.x /= tau_norm;
                     tau.y /= tau_norm;
 
@@ -48,21 +55,17 @@ void __global__ FindBoundaryParticles(Point* points, Vector* normals, double* ei
 
                     Vector xjT = { q.x - t.x, q.y - t.y };
                     double xjT_norm = sqrt(pow(xjT.x, 2) + pow(xjT.y, 2));
-                    //if (abs(p.x - q.x) >= sqrt(2 * p.h) &&
-                    //    abs(p.y - q.y) >= sqrt(2 * p.h) &&
-                    //    abs(p.x - t.x) < p.h &&
-                    //    abs(p.y - t.y) <  p.h) {
+
+                    // first condition
                     if(xji_norm >= sqrt(2 * p.h) && xjT_norm < p.h) {
 
                         flags[i] = 0;
                     }
 
-                    //if (abs(p.x - q.x) < sqrt(2 * p.h) &&
-                    //    abs(p.y - q.y) < sqrt(2 * p.h) &&
-                    //    abs(normals[2*i] * p.x - t.x) + abs(tau[0] * p.x - t.x) < p.h &&
-                    //    abs(normals[2*i + 1] * p.y - t.y) + abs(tau[1] * p.y - t.y) < p.h) {
                     double nx = abs(normals[i].x * xjT.x + normals[i].y * xjT.y);
                     double tauxjT = abs(tau.x * xjT.x + tau.y * xjT.y);
+
+                    // second condition
                     if (xji_norm < sqrt(2 * p.h) && nx + tauxjT < p.h) {
 
                         flags[i] = 0;
@@ -76,45 +79,10 @@ void __global__ FindBoundaryParticles(Point* points, Vector* normals, double* ei
     }
 }
 
-
-double distance(Point p1, Point p2){
-	return sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p1.y));
-}
-
-double norme(double* v){
-	return sqrt(v[0]*v[0] + v[1]*v[1]);
-}
-
-double dot_product(std::vector<double> vector1, std::vector<double> vector2){
-    double sum = 0;
-    for (int i = 0; i < 2; i++){
-    	sum += (vector1[i])*(vector2[i]);
-    }
-    return sum;
-}
-
-std::vector<double> generate_orthogonal(const std::vector<double>& a) {
-    // get some random data
-    std::vector<double> b = std::vector<double>(1,2); //generate_random(a.size());
-
-    // find the last non zero entry in a
-    // We have to turn the reverse iterator into an iterator via std::prev(rit.base())
-    auto IsZero = [] (const double f) -> bool { return f == double(0.0);};
-    auto end = std::prev(std::find_if_not(a.crbegin(), a.crend(), IsZero).base());
-
-    // determine the dot product up to end
-    double dotProduct = dot_product(a, b);
-
-    // set the value of b so that the inner product is zero
-    b[std::distance(a.cbegin(), end)] = - dotProduct / (*end);
-
-    return b;
-}
-
-
 void FreeSurfaceAlgo(const std::vector<Point>& points, std::vector<double>& eigenValues, 
     std::vector<Vector>& normals, std::vector<int>& flags){ // Function that computes from scratch
 
+    // extract normal of all the points
     std::pair<double,double> dW = ComputeNormalVector(points, eigenValues, normals);
     double Wmin = dW.first;
     double Wmax = dW.second;
@@ -157,71 +125,6 @@ void FreeSurfaceAlgo(const std::vector<Point>& points, std::vector<double>& eige
         flags.push_back(CPUflags[i]);
     }
 
-/*
-    for(int i=0; i<points.size(); i++)
-    {
-    	if(0.2*Wmax < eigenValues[i] || eigenValues[i] <= 0.75*Wmax)
-        {
-            /*
-    		// Computation of Renormalization matrix
-    		double rMatrix[2][2];
-            double dWdx;
-            double dWdy;
-            double sumResult[2];
-            double vi[2];
-
-    		for(int j=0; j < neighbors[i].size(); j++)
-            {
-    			computeGradiant(points[i], points[neighbors[i][j]], dWdx, dWdy);
-
-                // v : density
-    			sumResult[0] += dWdx * points[neighbors[i][j]].v;
-    			sumResult[1] += dWdy * points[neighbors[i][j]].v;
-    		}
-
-    		vi[0] = -1 * (rMatrix[0][0]*sumResult[0] + rMatrix[0][1]*sumResult[1]);
-    		vi[1] = -1 * (rMatrix[1][0]*sumResult[1] + rMatrix[1][1]*sumResult[1]);
-
-            std::vector<double> Ntemp;
-
-    		Ntemp.push_back(vi[0] / norme(vi) );
-    		Ntemp.push_back(vi[1] / norme(vi) );
-    		ni.push_back(Ntemp);
-
-*/
-/*
-    		//Normal point selection
-    		for(int j=0; j < neighbors[i].size(); j++) {
-
-    			Point t(points[i].x + ni[i][0], points[i].y + ni[i][1]);
-    			std::vector<double> tau = generate_orthogonal(ni[i]);
-
-    			if(abs(points[i].x - points[neighbors[i][j]].x) >= sqrt(2*points[i].h) &&
-                    abs(points[i].y - points[neighbors[i][j]].y) >= sqrt(2* points[i].h) &&
-                    abs(points[i].x-t.x) < sqrt(2*points[i].h) &&
-                    abs(points[i].y-t.y) < sqrt(2*points[i].h)) {
-    				// Not a normal point
-    			}
-                else {
-    				if(abs(points[i].x - points[neighbors[i][j]].x) < sqrt(2*points[i].h) &&
-                        abs(points[i].y - points[neighbors[i][j]].y) < sqrt(2*points[i].h) &&
-                        abs(ni[i][0]*points[i].x-t.x) + abs(tau[0]*points[i].x-t.x) < points[i].h &&
-                        abs(ni[i][1]*points[i].y-t.y) + abs(tau[1]*points[i].y-t.y) < points[i].h) {
-						// Not a normal point
-    				}
-                    else {
-    					// Is a normal point
-    					normalPoints.push_back(points[i]);
-    				}
-    			}
-    		}
-
-    	}
-        else {
-            // not a particle in boundaries
-    	}
-    }
-*/
     free(CPUpoints);
     free(CPUnormals);
     free(CPUeigenValues);

@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
     
     ExtractVolume(file, points);
 
+    // launch the chronometer
     clock_t begin = clock();
 
     std::vector<double> W;
@@ -71,10 +72,12 @@ int main(int argc, char* argv[])
     std::vector<int> flags;
 
     FreeSurfaceAlgo(points, eigenValues, normals, flags);
-    
-    SaveCoefficientValues(points, flags);
+    //ComputeWUsingCovarianceMatrix(points, W, k);
+
+    SaveCoefficientValues(points, eigenValues);
 
     clock_t end = clock();
+    // compute the difference to have the elapsed time
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
     std::cout << elapsed_secs << std::endl;
 

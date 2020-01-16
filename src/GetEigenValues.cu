@@ -103,6 +103,7 @@ void GetEigenValues(const std::vector<Point>& points, std::vector<double>& eigen
     eigenValues.clear();
     for (size_t i = 0; i < points.size(); i++)
     {
+        // add matrix elements computed in GPU
         matrix.push_back(std::vector<double>());
         matrix[i].push_back(CPUmatrix[4*i]);
         matrix[i].push_back(CPUmatrix[4*i + 1]);

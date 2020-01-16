@@ -6,7 +6,7 @@
 #include "Vector.h"
 
 //void SaveCoefficientValues(const std::vector<Point>& points, const std::vector<int>& flags, const std::vector<Vector>& normals)
-void SaveCoefficientValues(const std::vector<Point>& points, const std::vector<int>& W)
+void SaveCoefficientValues(const std::vector<Point>& points, const std::vector<double>& W)
 {
     std::cout << "Saving values.." << std::endl;
 
@@ -20,7 +20,7 @@ void SaveCoefficientValues(const std::vector<Point>& points, const std::vector<i
     fprintf(fileT, "X, Y, Z, W\n");
     for (int i = 0; i < points.size(); i++)
     {
-        fprintf(fileT, "%.6f, %.6f, %.6f, %u\n", points[i].x, points[i].y, 0, W[i]);
+        fprintf(fileT, "%.6f, %.6f, %.6f, %.6f\n", points[i].x, points[i].y, 0, W[i]);
     }
 
     fclose(fileT);
