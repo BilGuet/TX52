@@ -20,7 +20,7 @@ std::pair<double, double> SolveEigenvalues(double CovXX, double CovXY, double Co
     
     return { eigenvalues[0], eigenvalues[1] };
 
-    /*
+/*
     // own implementation
     double det = pow(CovXX + CovXY, 2) - 4 * (CovXX * CovYY - CovXY * CovYX);
 

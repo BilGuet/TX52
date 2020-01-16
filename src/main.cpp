@@ -21,12 +21,11 @@ int main(int argc, char* argv[])
     std::vector<Point> points;
 
     // number of neighbors (= 10 if not precised by user)
-    // used only with matrix covariance
     unsigned int k = 10;
 
     /////////////////////////   FILE READING, DO NOT TOUCH //////////////////////
                 if(argc == 1) {
-                    std::cout << "No input file or k. Exiting" << std::endl;
+                    std::cout << "No input file. Exiting" << std::endl;
                     return 0;
                 }
                 else if(argc == 2) {
@@ -66,13 +65,11 @@ int main(int argc, char* argv[])
     // launch the chronometer
     clock_t begin = clock();
 
-    std::vector<double> W;
     std::vector<double> eigenValues;
     std::vector<Vector> normals;
     std::vector<int> flags;
 
     FreeSurfaceAlgo(points, eigenValues, normals, flags);
-    //ComputeWUsingCovarianceMatrix(points, W, k);
 
     SaveCoefficientValues(points, eigenValues);
 
