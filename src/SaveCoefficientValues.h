@@ -17,7 +17,7 @@ void SaveCoefficientValues(const std::vector<Point>& points, const std::vector<i
     snprintf(bufferT, sizeof(char) * 255, "data/test.csv");
     fileT = fopen(bufferT, "w");
 
-    fprintf(fileT, "X, Y, Z, W, Nx, Ny\n");
+    fprintf(fileT, "X, Y, Z, W\n");
     for (int i = 0; i < points.size(); i++)
     {
         fprintf(fileT, "%.6f, %.6f, %.6f, %u\n", points[i].x, points[i].y, 0, W[i]);

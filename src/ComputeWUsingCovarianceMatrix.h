@@ -6,7 +6,7 @@
 #include "KNearestNeighbors.cuh"
 #include "SolveEigenvalues.h"
 
-void ComputeWUsingConvolutionMatrix(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
+void ComputeWUsingCovarianceMatrix(const std::vector<Point>& points, std::vector<double>& W, unsigned int k)
 {
     std::vector< std::vector<size_t> > neighbors;
     // compute the neighbors for all the points

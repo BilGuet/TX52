@@ -5,7 +5,7 @@
 #include "GetPointsFromVTK.h"
 #include "GetPointsFromCSV.h"
 #include "SaveCoefficientValues.h"
-#include "ComputeWUsingConvolutionMatrix.h"
+#include "ComputeWUsingCovarianceMatrix.h"
 #include "ComputeWUsingNumberNeighbor.cuh"
 #include "ExtractVolume.h"
 #include "ComputeNormalVector.cuh"
@@ -66,10 +66,12 @@ int main(int argc, char* argv[])
     clock_t begin = clock();
 
     std::vector<double> W;
-    std::vector<int> flags;
     std::vector<double> eigenValues;
     std::vector<Vector> normals;
+    std::vector<int> flags;
+
     FreeSurfaceAlgo(points, eigenValues, normals, flags);
+    
     SaveCoefficientValues(points, flags);
 
     clock_t end = clock();

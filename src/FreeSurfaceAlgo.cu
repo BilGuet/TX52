@@ -157,8 +157,6 @@ void FreeSurfaceAlgo(const std::vector<Point>& points, std::vector<double>& eige
         flags.push_back(CPUflags[i]);
     }
 
-    //SaveCoefficientValues(points, flags, normals);
-
 /*
     for(int i=0; i<points.size(); i++)
     {
