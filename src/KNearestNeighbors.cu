@@ -4,32 +4,6 @@
 #include "KNearestNeighbors.cuh"
 #include "ComputeNeighbors.cuh"
 
-////    CPU Version of Neighbors algorithm  ////
-void GetKNearestNeighborsCPU(const size_t p, const std::vector<Point>& points, std::vector<size_t>& neighbors, unsigned int k)
-{
-    neighbors.resize(k);
-    std::vector<double> distance(k, 1000);
-
-    for (size_t q = 0; q < points.size(); q++)
-    {
-        //check that we're not calculating the distance between p and itself
-        if (q != p)
-        {
-            //calcuate the distance between p and q
-            double d = sqrt(pow(points[p].x - points[q].x, 2) + pow(points[p].y - points[q].y, 2));
-
-            //check if q is nearer than the farest of the nearest point
-            auto max = std::max_element(distance.begin(), distance.end());
-            if (d < *max)
-            {
-                // store the distance and index of q
-                distance[std::distance(distance.begin(), max)] = d;
-                neighbors[std::distance(distance.begin(), max)] = q;
-            }
-        }
-    }
-}
-
 
 void GetKNearestNeighborsGPU(const std::vector<Point>& points, std::vector< std::vector<size_t> >& AllNeighbors, unsigned int k)
 {
